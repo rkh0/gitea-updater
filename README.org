@@ -48,7 +48,7 @@ So why write a script?  Two reasons:
   it safely.  Oh, you might be able to upgrade from release 1.0 to
   1.9, but I'm not entirely sure about that.  Anyway, if you "play it
   safe" as I do, this "dance" can become a tedious, error-prone chore
-  when you have to do it manualy and you are upteen versions behind
+  when you have to do it manually and you are upteen versions behind
   the one you want to get to.
 
 - I need to record how I did the upgrade (and deployment) and having a
@@ -59,7 +59,7 @@ So why write a script?  Two reasons:
 This script is just a monolith. Put it somewhere on your PATH.  Voila!
 Done.
 
-*** Configuretion
+*** Configuration
 
 There is a section at the top of the script marked =CONFIGURATION=.
 You might want to change the values of the variables found there to
@@ -92,7 +92,7 @@ TAR=${TAR:-gtar}
 
 2. Log into the backend via ssh.
 
-3. To jog my memory -- remember, this is probaly Forgetful Me coming
+3. To jog my memory -- remember, this is probably Forgetful Me coming
    back to this weeks or months later -- about the state of the
    deployed version of gitea, versus the releases available to upgrade
    to (from the repo working directory), I just run the script without
@@ -128,7 +128,7 @@ TAR=${TAR:-gtar}
    - backup the files in the deployment directory (so that you can
      recover from a failed upgrade, should that happen),
    - checkout the given release of gitea and build it, and
-   - copy the new version of gitea into deployment directory.
+   - copy the new version of gitea into the deployment directory.
   
 5. If all goes well, go to the NFSN Management Console and restart the
    gitea instance.
@@ -142,10 +142,24 @@ not want to upgrade to that version yet, and perhaps wait to see if
 more commits go on that 1.12 branch (i.e., =origin/release/v1.12=)
 before I upgrade to that one.
 
-But, a nota bene for that. The rule that "release branches that are
+But, a /nota bene/ on that. The rule that "release branches that are
 complete get tagged" is not a hard-and-fast one. That has happened for
 the most part in the gitea project but there were some exceptions. For
 instance, as of this writing, we are beyond releases 1.8 and 1.9;
 however, they were never tagged. So, the absence of a tag on the
 release branch doesn't necessarily mean that it is still being
 developed. I hope that's clear.
+
+** TO DO
+
+- [ ] Test: Run this script after following the instructions of the
+  blog post (that initially installs gitea).  Notice that the author
+  /deletes/ to =GOPATH= directory entirely, after he builds gitea. I
+  want to see if the script can recover from that.
+
+- [ ] Test: Can the script be used to initially install gitea on NFSN
+  /without/ following the blog post?  Would need the script to at
+  least do the following:
+
+  - [ ] Generate an "NFSN daemon script" for the gitea instance and
+    drop it in the deployment directory.
