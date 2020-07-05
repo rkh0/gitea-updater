@@ -116,9 +116,11 @@ _NEXT_VERSION=$1
 set -x
 
 ## Backup the deploy directory.
-cd ${_DEPLOY_DIR}
-${TAR} zcf ${_BACKUP_DIR}/gitea-release-${_CURRENT_VERSION}-v${_DEPLOYED_VERSION}.tgz \
-       custom data gitea repositories *.sh *.log
+if [ -r ${_DEPLOY_DIR}/gitea ]; then
+  cd ${_DEPLOY_DIR}
+  ${TAR} zcf ${_BACKUP_DIR}/gitea-release-${_CURRENT_VERSION}-v${_DEPLOYED_VERSION}.tgz \
+         custom data gitea repositories *.sh *.log
+fi
 
 ## Now, go to ${_WORKING_DIR} and build the next version; then deploy.
 cd ${_WORKING_DIR} &&
