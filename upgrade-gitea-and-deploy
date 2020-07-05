@@ -1,0 +1,131 @@
+#!/bin/sh
+#
+# upgrade-gitea-and-deploy -- Update gitea on NFSN to the next release and deploy it
+#
+# This script depends on the following:
+# - POSIX UNIX shell environment
+# - GNU make and tar utilities
+# - git
+# - go
+
+##----------------------------------------------------------------------
+## CONFIGURATION. Change these variables to suit your system and usage.
+
+_DEPLOY_DIR=/home/protected
+_BACKUP_DIR=/home/private/backups
+
+# These should be set to the GNU versions on your system.  For
+# instance, on a GNU/Linux-based system, change these to `make` and
+# `tar` respectively.  (These are set for NFSN, a FreeBSD system.)
+MAKE=${MAKE:-gmake}
+TAR=${TAR:-gtar}
+
+##----------------------------------------------------------------------
+## Should be "boilerplate" below this line.
+
+if [ -z "${GOPATH}" ]; then
+  echo "${0##*/}: set GOPATH environment variable and rerun." >&2
+  echo "Example: export GOPATH=${HOME}/go" >&2
+  exit 1
+fi
+
+mkdir -p ${_DEPLOY_DIR}
+mkdir -p ${_BACKUP_DIR}
+
+_WORKING_DIR=${GOPATH}/src/code.gitea.io/gitea
+
+if [ ! -d ${_WORKING_DIR} ]; then
+  echo "${0##*/}: Cannot find gitea source working directory.  Fetching ..." >&2
+  go get -d -u -v code.gitea.io/gitea || exit $?
+fi
+
+_WORKING_DIR_VERSION=$(cd ${_WORKING_DIR};git branch -a | awk '$1=="*"{gsub(/release\/v/,"",$2);print $2}')
+
+if [ ! -r ${_DEPLOY_DIR}/gitea ]; then
+  _DEPLOYED_VERSION=NONE
+  _DEPLOYED_RELEASE=NONE
+else
+  _DEPLOYED_VERSION=$(${_DEPLOY_DIR}/gitea --version | awk '{print $3}')
+  _DEPLOYED_RELEASE=${_DEPLOYED_VERSION%.*}
+fi
+
+_list_all_releases () {
+  git branch -a |
+    awk '/remotes\/origin\/release\/v/{
+      gsub(/remotes\/origin\/release\/v/,"",$1)
+      print $1
+    }'
+}
+
+_list_releases_with_tags () {
+  # This may be the hard way to do it, but it works. :)
+  git log --oneline --decorate --all --tags |
+    grep origin/release/v |
+    grep 'tag: ' |
+    sed 's?.*origin/release/v??' |
+    sed 's?[^0-9.] .*$??'
+}
+
+_list_all_releases_note_tags () {
+  git log --oneline --decorate --all --tags |
+    grep origin/release/v |
+    awk '{
+      prefix = "origin/release/v"
+      version_regex = "[0-9.]+"
+      if(match($0, prefix version_regex)) {
+        offset = length(prefix)
+        printf(substr($0,RSTART+offset,RLENGTH-offset))
+        if (!match($0, "tag: v" version_regex))
+          printf(" (no tag!)")
+        printf("\n")
+      }
+    }'
+}
+
+_list_candidates () {
+  cd ${_WORKING_DIR} &&
+    git fetch --all >/dev/null 2>&1 &&
+    _list_all_releases_note_tags |
+    sort -t. -k1n,1n -k2n,2n |
+    awk 'prt{print;N++}
+         !prt&&$1=="'"${_DEPLOYED_RELEASE}"'"{prt=1}
+         END{if(!N)print "(NONE FOUND)"}'
+}
+
+if [ $# -lt 1 ]; then
+  echo "Usage: ${0##*/} [current_version] next_version" >&2
+  echo >&2
+  echo "Example: To upgrade to release 1.3 say: ${0##*/} 1.3" >&2
+  echo >&2
+  echo "Deployed version is: ${_DEPLOYED_RELEASE} (${_DEPLOYED_VERSION})." >&2
+  echo "Working (build) directory version is: ${_WORKING_DIR_VERSION}." >&2
+  echo "Releases (beyond the currently deployed release) to which you could upgrade:" >&2
+  _list_candidates
+  exit 2
+fi
+
+if [ $# -eq 2 ]; then
+  _CURRENT_VERSION=$1
+  shift 1
+else
+  _CURRENT_VERSION=${_DEPLOYED_RELEASE}
+fi
+
+_NEXT_VERSION=$1
+
+set -x
+
+## Backup the deploy directory.
+cd ${_DEPLOY_DIR}
+${TAR} zcf ${_BACKUP_DIR}/gitea-release-${_CURRENT_VERSION}-v${_DEPLOYED_VERSION}.tgz \
+       custom data gitea repositories *.sh *.log
+
+## Now, go to ${_WORKING_DIR} and build the next version; then deploy.
+cd ${_WORKING_DIR} &&
+  git checkout release/v${_NEXT_VERSION} &&
+  TAGS="bindata sqlite sqlite_unlock_notify" ${MAKE} generate build &&
+  cp gitea ${_DEPLOY_DIR} &&
+  chgrp web ${_DEPLOY_DIR}/gitea &&
+  cp gitea ${_DEPLOY_DIR}/gitea-v${_NEXT_VERSION} &&
+  chgrp web ${_DEPLOY_DIR}/gitea-v${_NEXT_VERSION} &&
+  rm ${_DEPLOY_DIR}/*.log  # start with a fresh log -- you already backed it up.

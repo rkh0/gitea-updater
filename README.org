@@ -1,0 +1,151 @@
+* Gitea Updater
+
+** Background
+
+This is a handy script to update a [[https://gitea.io][gitea]] instance running on [[https://www.nearlyfreespeech.net/][NFSN]].
+That said, you could probably easily adapt this script to another
+system by changing a couple of lines of code.
+
+** Before Starting
+
+You probably want to read the following blog post before starting with
+this script.
+
+[[https://www.noamross.net/2019/12/15/git-hosting-for-the-distraught-and-the-restless/][Git Hosting for the Distraught and the Restless]]
+
+It's the recommended tutorial for NFSN users, referenced from the NFSN
+member wiki (not public).  It provides a recipe for installing gitea
+on NFSN (as well as how to setup an account on NFSN if you want to try
+that out); however, the system setup (at the shell command line) should
+be the same for other hosting services and VPSes that are "UNIXy".
+
+** Keeping Gitea Updated
+
+*** "Fat, drunk and stupid is no way to go through life, Son."
+
+Our script here picks up where that blog post leaves off.  I've been
+running gitea on NFSN since early 2017 -- I started with gitea 1.0.2
+to give you an idea -- and the problem with my admining (if you can
+call it that) is that I tend to walk away and the system (gitea in
+this instance) doesn't get updated for months or years.  That kinda
+makes sense: it's not my VPS that I work on every day; it's more "out
+of sight, out of mind", sadly.  And additionally, the hard-working
+folks at NFSN are regularly updating the system around gitea (a
+FreeBSD jail) and they do a great job (there have been no hiccups in
+the years I've been with them) and that makes me even more SUUUUPER
+LAZY. :)
+
+*** Finally, Some Motivation
+
+So, I finally sat down and wrote this script to do the job of
+updating/upgrading the gitea instance and then deploying it.
+
+So why write a script?  Two reasons:
+
+- You should probably be upgrading gitea by successive releases (e.g,
+  from release 1.2 to release 1.3) because if there are any changes to
+  the database, gitea, which has built-in routines to do that, can do
+  it safely.  Oh, you might be able to upgrade from release 1.0 to
+  1.9, but I'm not entirely sure about that.  Anyway, if you "play it
+  safe" as I do, this "dance" can become a tedious, error-prone chore
+  when you have to do it manualy and you are upteen versions behind
+  the one you want to get to.
+
+- I need to record how I did the upgrade (and deployment) and having a
+  script is better than having mere notes.
+
+*** Installation
+
+This script is just a monolith. Put it somewhere on your PATH.  Voila!
+Done.
+
+*** Configuretion
+
+There is a section at the top of the script marked =CONFIGURATION=.
+You might want to change the values of the variables found there to
+suit your system and usage.
+
+=_DEPLOY_DIR= is where the gitea instance is located on the file
+system. =_BACKUP_DIR= is where the script stores your backups, which
+are created before any upgrade. They are set to sane values for NFSN
+users.
+
+#+begin_src sh
+_DEPLOY_DIR=/home/protected
+_BACKUP_DIR=/home/private/backups
+#+end_src
+
+The variables =MAKE= and =TAR= should be set to the GNU versions of
+these utilities on your system.  For instance, on a GNU/Linux-based
+system, change these to =make= and =tar= respectively.  (These are set
+for NFSN, which is a FreeBSD system.)
+
+#+begin_src sh
+MAKE=${MAKE:-gmake}
+TAR=${TAR:-gtar}
+#+end_src
+
+*** Workflow
+
+1. Before upgrading the gitea instance, go to the NFSN Management
+   Console and stop the instance.
+
+2. Log into the backend via ssh.
+
+3. To jog my memory -- remember, this is probaly Forgetful Me coming
+   back to this weeks or months later -- about the state of the
+   deployed version of gitea, versus the releases available to upgrade
+   to (from the repo working directory), I just run the script without
+   any arguments.
+
+   #+begin_src
+     $ upgrade-gitea-and-deploy
+     Usage: upgrade-gitea-and-deploy [current_version] next_version
+
+     Example: To upgrade to release 1.3 say: upgrade-gitea-and-deploy 1.3
+
+     Deployed version is: 1.10 (1.10.6).
+     Working (build) directory version is: 1.10.
+     Releases (beyond the currently deployed release) to which you could upgrade:
+     1.11
+     1.12 (no tag!)
+   #+end_src
+
+   This shows that the deployed version is at release 1.10 (and namely
+   at 1.10.6) and then shows a list of release versions beyond 1.10
+   that I could upgrade to.
+
+4. I usually upgrade one release at a time (not "jumping" releases) to
+   allow gitea to update the DB for me (there are internal routines
+   that do that). So, the command to update in this situation would
+   be:
+
+   #+begin_src
+     $ upgrade-gitea-and-deploy 1.11
+   #+end_src
+
+   This will:
+   - backup the files in the deployment directory (so that you can
+     recover from a failed upgrade, should that happen),
+   - checkout the given release of gitea and build it, and
+   - copy the new version of gitea into deployment directory.
+  
+5. If all goes well, go to the NFSN Management Console and restart the
+   gitea instance.
+
+*** Aside: Tag Notation
+
+Notice that in step 3 above, release 1.12 was noted as having no
+tag. This could mean that the developers really haven't finished with
+(i.e., haven't frozen) that release branch yet. In that case, I might
+not want to upgrade to that version yet, and perhaps wait to see if
+more commits go on that 1.12 branch (i.e., =origin/release/v1.12=)
+before I upgrade to that one.
+
+But, a nota bene for that. The rule that "release branches that are
+complete get tagged" is not a hard-and-fast one. That has happened for
+the most part in the gitea project but there were some exceptions. For
+instance, as of this writing, we are beyond releases 1.8 and 1.9;
+however, they were never tagged. So, the absence of a tag on the
+release branch doesn't necessarily mean that it is still being
+developed. I hope that's clear.
