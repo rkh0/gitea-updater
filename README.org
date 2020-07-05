@@ -157,9 +157,12 @@ developed. I hope that's clear.
   /deletes/ to =GOPATH= directory entirely, after he builds gitea. I
   want to see if the script can recover from that.
 
-- [ ] Test: Can the script be used to initially install gitea on NFSN
-  /without/ following the blog post?  Would need the script to at
-  least do the following:
+- [ ] As a convenience, be able to generate an "NFSN daemon script"
+  for the gitea instance and drop it in the deployment
+  directory. (This would be the one I'm using that creates a runtime
+  log file.)
 
-  - [ ] Generate an "NFSN daemon script" for the gitea instance and
-    drop it in the deployment directory.
+- [ ] Can the script be used to initially install gitea on NFSN
+  /without/ following the blog post?  This might be too much and
+  qualify as scope creep.
+
