@@ -199,6 +199,7 @@ scenario goes like this.
 
 8. The script dropped an NFSN run script (for the gitea instance) in
    the deply directory.  You need to go there and rename it.
+
    #+begin_example
      $ cd /home/protected
      $ ls -l
@@ -208,6 +209,32 @@ scenario goes like this.
      -rwxrwxr-x  1 999999  web          172 Jul  6 03:32 RENAME-ME-TO-run-gitea.sh
      $ mv RENAME-ME-TO-run-gitea.sh run-gitea.sh
    #+end_example
+
+   (The script isn't heavy-handed and doesn't want to accidently
+   override a run script that you might already have installed --
+   that's why the funny name and the necessity of the manual rename.)
+
+9. You should be able now to follow the rest of the blog post
+   directions, i.e. go back to the NFSN Managament Console and wire up
+   the run script and the proxy parameters and kick off the site.
+
+10. Go to you site and click on any one of the links (like "Explore");
+    you should be taken to the *Initial Configuration* page, i.e. it
+    redirects you to the =/install= URI path).  These are the settings
+    I recommend for NFSN.
+
+    - *Database Type*: SQLite3
+
+    - *Path*: =/home/protected/data/gitea.db= /this is the default
+      setting/
+
+    - All other paths, put under =/home/protected=.
+
+    - I blanked (thus disabling) *Git LFS Root Path*.
+
+    - I blanked *SSH Server Port*.  NFSN won't allow ssh access for
+      your gitea users.
+
 
 ** TO DO
 
