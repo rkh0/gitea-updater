@@ -163,7 +163,7 @@ scenario goes like this.
 5. Setup =GOPATH=. =export GOPATH=$HOME/go= will do.
 6. Running =gitea-updater/upgrade-gitea-and-deploy= will download the
    code. Be patient, the download takes few minutes.  Then, finally,
-   you'll see something like the foloowing message before you get the
+   you'll see something like the following message before you get the
    prompt back.
 
    #+begin_example
@@ -198,7 +198,7 @@ scenario goes like this.
    default =/home/protected=).
 
 8. The script dropped an NFSN run script (for the gitea instance) in
-   the deply directory.  You need to go there and rename it.
+   the deploy directory.  You need to go there and rename it.
 
    #+begin_example
      $ cd /home/protected
