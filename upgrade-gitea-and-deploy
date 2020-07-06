@@ -113,6 +113,18 @@ fi
 
 _NEXT_VERSION=$1
 
+_RUN_SCRIPT=${_DEPLOY_DIR}/run-gitea.sh
+_RUN_SCRIPT_COPY=${_DEPLOY_DIR}/RENAME-ME-TO-run-gitea.sh
+
+if [ ! -r ${_RUN_SCRIPT} ]; then
+cat > ${_RUN_SCRIPT_COPY} <<'EOF'
+#!/bin/sh
+runscriptname=$(basename $0)
+runscriptlocation=$(dirname $0)
+exec ${runscriptlocation}/gitea web >> ${runscriptlocation}/${runscriptname}-console-output.log 2>&1
+EOF
+fi
+
 set -x
 
 ## Backup the deploy directory.
