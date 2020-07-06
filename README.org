@@ -150,7 +150,39 @@ however, they were never tagged. So, the absence of a tag on the
 release branch doesn't necessarily mean that it is still being
 developed. I hope that's clear.
 
-** Initial Install
+
+** Other Notes
+
+*** Restoring from backups
+
+If an upgrade fails, you should be able to "rollback" to the last good
+release by restoring from backups.  The script will not do that for
+you.  The backups are in the form of =.tgz= (gzipped tar files) in the
+backup directory (by default, =/home/private/backups=).  You'll have
+to have some facility with the =tar= utility.  If you don't, running
+=man tar= in the shell is a good place to start.
+
+*** Saving on disk usage
+
+Notice that the blog post author deletes to =GOPATH= directory
+entirely, after he builds gitea. I think this may be because he
+doesn't want to pay the extra cost of disk usage on NFSN.  In this
+case, this script can still be used to upgrade the gitea instance
+because it will recover the =GOPATH= directory by downloading again
+the code for gitea and its dependencies.  See the section below,
+*Addendum: Initial Install* to see that in action.  If you too want to
+save on the disk space, you should be able to delete the =GOPATH=
+directory when the script has completed the upgrade and deployment.
+
+*** Auto-creation of NFSN run script
+
+This script will also generate an "NFSN run script" for the gitea
+instance and drop it in the deployment directory. (This is like the
+one I'm using that creates a runtime log file.)  Also, see this
+facility in action in the section *Addendum: Initial Install*.
+
+
+** Addendum: Initial Install
 
 Turns out that you can also use this script for the initial install
 (as well as for its original purpose: to perform upgrades).  The
@@ -194,11 +226,11 @@ scenario goes like this.
    #+end_example
 
    This will start a build of that release.  When that is finished,
-   the gitea binary will be deployed to the deploy directory (by
+   the gitea binary will be deployed to the deployment directory (by
    default =/home/protected=).
 
 8. The script dropped an NFSN run script (for the gitea instance) in
-   the deploy directory.  You need to go there and rename it.
+   the deployment directory.  You need to go there and rename it.
 
    #+begin_example
      $ cd /home/protected
@@ -219,7 +251,7 @@ scenario goes like this.
    the run script and the proxy parameters and kick off the site.
 
 10. Go to you site and click on any one of the links (like "Explore");
-    you should be taken to the *Initial Configuration* page, i.e. it
+    you should be taken to the *Initial Configuration* page, i.e., it
     redirects you to the =/install= URI path).  These are the settings
     I recommend for NFSN.
 
@@ -234,21 +266,3 @@ scenario goes like this.
 
     - I blanked *SSH Server Port*.  NFSN won't allow ssh access for
       your gitea users.
-
-
-** TO DO
-
-- [ ] Test: Run this script after following the instructions of the
-  blog post (that initially installs gitea).  Notice that the author
-  /deletes/ to =GOPATH= directory entirely, after he builds gitea. I
-  want to see if the script can recover from that.
-
-- [ ] As a convenience, be able to generate an "NFSN daemon script"
-  for the gitea instance and drop it in the deployment
-  directory. (This would be the one I'm using that creates a runtime
-  log file.)
-
-- [ ] Can the script be used to initially install gitea on NFSN
-  /without/ following the blog post?  This might be too much and
-  qualify as scope creep.
-
