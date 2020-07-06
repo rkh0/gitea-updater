@@ -125,6 +125,8 @@ fi
 
 _NEXT_VERSION=$1
 
+## BEGIN NFSN USE ONLY ==================================
+# This section is a convenience for NFSN members only.
 _RUN_SCRIPT=${_DEPLOY_DIR}/run-gitea.sh
 _RUN_SCRIPT_COPY=${_DEPLOY_DIR}/RENAME-ME-TO-run-gitea.sh
 
@@ -135,7 +137,10 @@ runscriptname=$(basename $0)
 runscriptlocation=$(dirname $0)
 exec ${runscriptlocation}/gitea web >> ${runscriptlocation}/${runscriptname}-console-output.log 2>&1
 EOF
+chmod +x ${_RUN_SCRIPT_COPY}
+chgrp web ${_RUN_SCRIPT_COPY}
 fi
+## END NFSN USE ONLY ====================================
 
 set -x
 

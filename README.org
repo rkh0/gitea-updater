@@ -150,6 +150,65 @@ however, they were never tagged. So, the absence of a tag on the
 release branch doesn't necessarily mean that it is still being
 developed. I hope that's clear.
 
+** Initial Install
+
+Turns out that you can also use this script for the initial install
+(as well as for its original purpose: to perform upgrades).  The
+scenario goes like this.
+
+1. Create an NFSN (Custom) site, as the blog post directs.
+2. ssh into the backend of that (new) site.
+3. =cd $HOME=
+4. =git clone https://github.com/rkh0/gitea-updater.git=
+5. Setup =GOPATH=. =export GOPATH=$HOME/go= will do.
+6. Running =gitea-updater/upgrade-gitea-and-deploy= will download the
+   code. Be patient, the download takes few minutes.  Then, finally,
+   you'll see something like the foloowing message before you get the
+   prompt back.
+
+   #+begin_example
+     Deployed version is: NONE (NONE).
+     Working (build) directory version is: master.
+     Here are the releases of gitea that you could build and deploy:
+     0.9 (no tag!)
+     1.0 (no tag!)
+     1.1
+     1.2
+     1.3
+     1.4
+     1.5
+     1.6
+     1.7
+     1.8 (no tag!)
+     1.9 (no tag!)
+     1.10
+     1.11
+     1.12 (no tag!)
+   #+end_example
+
+7. Pick one of the releases on this list and rerun the script with it
+   as an argument, like this:
+
+   #+begin_example
+     $ gitea-updater/upgrade-gitea-and-deploy 1.10
+   #+end_example
+
+   This will start a build of that release.  When that is finished,
+   the gitea binary will be deployed to the deploy directory (by
+   default =/home/protected=).
+
+8. The script dropped an NFSN run script (for the gitea instance) in
+   the deply directory.  You need to go there and rename it.
+   #+begin_example
+     $ cd /home/protected
+     $ ls -l
+     total 158804
+     -rwxrwxr-x  1 999999  web     62222320 Jul  6 03:38 gitea
+     -rwxrwxr-x  1 999999  web     62222320 Jul  6 03:38 gitea-v1.10
+     -rwxrwxr-x  1 999999  web          172 Jul  6 03:32 RENAME-ME-TO-run-gitea.sh
+     $ mv RENAME-ME-TO-run-gitea.sh run-gitea.sh
+   #+end_example
+
 ** TO DO
 
 - [ ] Test: Run this script after following the instructions of the
