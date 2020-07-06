@@ -23,7 +23,7 @@ be the same for other hosting services and VPSes that are "UNIXy".
 
 *** "Fat, drunk and stupid is no way to go through life, Son."
 
-Our script here picks up where that blog post leaves off.  I've been
+Our script here picks up where the [[https://www.noamross.net/2019/12/15/git-hosting-for-the-distraught-and-the-restless/][blog post]] leaves off.  I've been
 running gitea on NFSN since early 2017 -- I started with gitea 1.0.2
 to give you an idea -- and the problem with my admining (if you can
 call it that) is that I tend to walk away and the system (gitea in
@@ -43,13 +43,14 @@ updating/upgrading the gitea instance and then deploying it.
 So why write a script?  Two reasons:
 
 - You should probably be upgrading gitea by successive releases (e.g,
-  from release 1.2 to release 1.3) because if there are any changes to
-  the database, gitea, which has built-in routines to do that, can do
-  it safely.  Oh, you might be able to upgrade from release 1.0 to
-  1.9, but I'm not entirely sure about that.  Anyway, if you "play it
-  safe" as I do, this "dance" can become a tedious, error-prone chore
-  when you have to do it manually and you are upteen versions behind
-  the one you want to get to.
+  from release 1.2 to release 1.3) because if at any time there were
+  any changes made to the format of its database, gitea, which has
+  built-in routines to update its database, can update it properly.
+  Oh, you might be able to upgrade from, say, release 1.0 to 1.9, but
+  I'm not entirely sure about that.  Anyway, if you "play it safe" as
+  I do, this "dance" can become a tedious, error-prone chore when you
+  have to do it manually and you are umpteen versions behind the one
+  you want to get to.
 
 - I need to record how I did the upgrade (and deployment) and having a
   script is better than having mere notes.
@@ -60,6 +61,8 @@ This script is just a monolith. Put it somewhere on your PATH.  Voila!
 Done.
 
 *** Configuration
+
+/NFSN users can skip this section and go on to the [[#workflow][Workflow section]]./
 
 There is a section at the top of the script marked =CONFIGURATION=.
 You might want to change the values of the variables found there to
@@ -116,9 +119,9 @@ TAR=${TAR:-gtar}
    that I could upgrade to.
 
 4. I usually upgrade one release at a time (not "jumping" releases) to
-   allow gitea to update the DB for me (there are internal routines
-   that do that). So, the command to update in this situation would
-   be:
+   allow gitea to update the database for me (there are internal
+   routines that do that). So, the command to update in this situation
+   would be:
 
    #+begin_src
      $ upgrade-gitea-and-deploy 1.11
@@ -135,12 +138,12 @@ TAR=${TAR:-gtar}
 
 *** Aside: Tag Notation
 
-Notice that in step 3 above, release 1.12 was noted as having no
-tag. This could mean that the developers really haven't finished with
-(i.e., haven't frozen) that release branch yet. In that case, I might
-not want to upgrade to that version yet, and perhaps wait to see if
-more commits go on that 1.12 branch (i.e., =origin/release/v1.12=)
-before I upgrade to that one.
+Notice that in [[#workflow][step 3 of the workflow]], release 1.12 was noted as
+having no tag. This could mean that the developers really haven't
+finished with (i.e., haven't frozen) that release branch yet. In that
+case, I might not want to upgrade to that version yet, and perhaps
+wait to see if more commits go on that 1.12 branch (i.e.,
+=origin/release/v1.12=) before I upgrade to that one.
 
 But, a /nota bene/ on that. The rule that "release branches that are
 complete get tagged" is not a hard-and-fast one. That has happened for
@@ -158,28 +161,29 @@ developed. I hope that's clear.
 If an upgrade fails, you should be able to "rollback" to the last good
 release by restoring from backups.  The script will not do that for
 you.  The backups are in the form of =.tgz= (gzipped tar files) in the
-backup directory (by default, =/home/private/backups=).  You'll have
+backup directory (by [[#configuration][default]], =/home/private/backups=).  You'll have
 to have some facility with the =tar= utility.  If you don't, running
 =man tar= in the shell is a good place to start.
 
 *** Saving on disk usage
 
-Notice that the blog post author deletes to =GOPATH= directory
+Notice that the [[https://www.noamross.net/2019/12/15/git-hosting-for-the-distraught-and-the-restless/#build-and-install-gitea][blog post]] author deletes the =GOPATH= directory
 entirely, after he builds gitea. I think this may be because he
-doesn't want to pay the extra cost of disk usage on NFSN.  In this
-case, this script can still be used to upgrade the gitea instance
-because it will recover the =GOPATH= directory by downloading again
-the code for gitea and its dependencies.  See the section below,
-*Addendum: Initial Install* to see that in action.  If you too want to
-save on the disk space, you should be able to delete the =GOPATH=
-directory when the script has completed the upgrade and deployment.
+doesn't want to pay the extra cost of disk usage on NFSN -- not a bad
+idea.  In this case, this script can still be used to upgrade the
+gitea instance because it will recover the =GOPATH= directory by
+downloading again the code for gitea and its dependencies.  See the
+section below, [[#addendum-initial-install][Addendum: Initial Install]], to see that in action.  If
+you too want to save on the cost of disk space, you should be able to
+delete the =GOPATH= directory, once the script has completed the
+upgrade and deployment.
 
 *** Auto-creation of NFSN run script
 
 This script will also generate an "NFSN run script" for the gitea
 instance and drop it in the deployment directory. (This is like the
 one I'm using that creates a runtime log file.)  Also, see this
-facility in action in the section *Addendum: Initial Install*.
+facility in action in the section [[#addendum-initial-install][Addendum: Initial Install]].
 
 
 ** Addendum: Initial Install
@@ -188,7 +192,7 @@ Turns out that you can also use this script for the initial install
 (as well as for its original purpose: to perform upgrades).  The
 scenario goes like this.
 
-1. Create an NFSN (Custom) site, as the blog post directs.
+1. Create an NFSN (Custom) site, as the [[https://www.noamross.net/2019/12/15/git-hosting-for-the-distraught-and-the-restless/#register-an-nfsn-site][blog post]] directs.
 2. ssh into the backend of that (new) site.
 3. =cd $HOME=
 4. =git clone https://github.com/rkh0/gitea-updater.git=
@@ -227,7 +231,7 @@ scenario goes like this.
 
    This will start a build of that release.  When that is finished,
    the gitea binary will be deployed to the deployment directory (by
-   default =/home/protected=).
+   [[#configuration][default]], =/home/protected=).
 
 8. The script dropped an NFSN run script (for the gitea instance) in
    the deployment directory.  You need to go there and rename it.
@@ -242,18 +246,21 @@ scenario goes like this.
      $ mv RENAME-ME-TO-run-gitea.sh run-gitea.sh
    #+end_example
 
-   (The script isn't heavy-handed and doesn't want to accidently
-   override a run script that you might already have installed --
+   (The script isn't heavy-handed and doesn't want to accidentally
+   overwrite any custom run script that you manually installed --
    that's why the funny name and the necessity of the manual rename.)
 
-9. You should be able now to follow the rest of the blog post
-   directions, i.e. go back to the NFSN Managament Console and wire up
+9. You should be able now to follow the rest of the [[https://www.noamross.net/2019/12/15/git-hosting-for-the-distraught-and-the-restless/#create-a-daemon-and-proxy][blog post]]
+   directions, i.e. go back to the NFSN Management Console and wire up
    the run script and the proxy parameters and kick off the site.
 
-10. Go to you site and click on any one of the links (like "Explore");
-    you should be taken to the *Initial Configuration* page, i.e., it
-    redirects you to the =/install= URI path).  These are the settings
-    I recommend for NFSN.
+10. Visit your site in the browser and you should be taken to the
+    *Initial Configuration* page, i.e., it redirects you to the
+    =/install= URI path.
+    /If you instead see the main page of gitea, then click on any one of the links (like "Explore");/
+    /that should be enough to get you redirected to the configuration page./
+
+    These are the settings I recommend for NFSN.
 
     - *Database Type*: SQLite3
 
