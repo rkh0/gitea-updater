@@ -36,7 +36,7 @@ _WORKING_DIR=${GOPATH}/src/code.gitea.io/gitea
 
 if [ ! -d ${_WORKING_DIR} ]; then
   echo "${0##*/}: Cannot find gitea source working directory.  Fetching ..." >&2
-  go get -d -u -v code.gitea.io/gitea || exit $?
+  (set -x; go get -d -u -v code.gitea.io/gitea) || exit $?
 fi
 
 _WORKING_DIR_VERSION=$(cd ${_WORKING_DIR};git branch -a | awk '$1=="*"{gsub(/release\/v/,"",$2);print $2}')
@@ -92,6 +92,13 @@ _list_candidates () {
          END{if(!N)print "(NONE FOUND)"}'
 }
 
+_list_candidates_first_time () {
+  cd ${_WORKING_DIR} &&
+    git fetch --all >/dev/null 2>&1 &&
+    _list_all_releases_note_tags |
+    sort -t. -k1n,1n -k2n,2n
+}
+
 if [ $# -lt 1 ]; then
   echo "Usage: ${0##*/} [current_version] next_version" >&2
   echo >&2
@@ -99,8 +106,13 @@ if [ $# -lt 1 ]; then
   echo >&2
   echo "Deployed version is: ${_DEPLOYED_RELEASE} (${_DEPLOYED_VERSION})." >&2
   echo "Working (build) directory version is: ${_WORKING_DIR_VERSION}." >&2
-  echo "Releases (beyond the currently deployed release) to which you could upgrade:" >&2
-  _list_candidates
+  if [ ${_DEPLOYED_RELEASE} == NONE ]; then
+    echo "Here are the releases of gitea that you could build and deploy:" >&2
+    _list_candidates_first_time
+  else
+    echo "Releases (beyond the currently deployed release) to which you could upgrade:" >&2
+    _list_candidates
+  fi
   exit 2
 fi
 
