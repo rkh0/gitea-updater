@@ -157,6 +157,4 @@ cd ${_WORKING_DIR} &&
   TAGS="bindata sqlite sqlite_unlock_notify" ${MAKE} generate build &&
   cp gitea ${_DEPLOY_DIR} &&
   chgrp web ${_DEPLOY_DIR}/gitea &&
-  cp gitea ${_DEPLOY_DIR}/gitea-v${_NEXT_VERSION} &&
-  chgrp web ${_DEPLOY_DIR}/gitea-v${_NEXT_VERSION} &&
-  rm ${_DEPLOY_DIR}/*.log  # start with a fresh log -- you already backed it up.
+  rm -fr ${_DEPLOY_DIR}/*log  # start with fresh logs -- you already backed them up.
